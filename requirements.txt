@@ -1,0 +1,15 @@
+# Core untuk GUI labeler manual
+PySide6>=6.6
+numpy>=1.24,<3
+opencv-python>=4.10.0
+cryptography
+
+# Kalau kamu juga butuh modul ArUco di GUI ini, ganti baris opencv-python jadi:
+# opencv-contrib-python>=4.10.0
+
+# (Opsional) Jika nantinya mau training/inference YOLO dari env yang sama, buka komentar di bawah:
+# ultralytics>=8.2.0
+# torch>=2.2.0          # pilih build CUDA yang cocok dengan GPU-mu
+# torchvision>=0.17.0
+# torchaudio>=2.2.0     # opsional
+# pandas>=2.0           # kalau perlu ekspor/analisis CSV

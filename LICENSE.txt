@@ -1,0 +1,13 @@
+LeafLabeler © 2025 Oki Saputra - OS AI Corp. All rights reserved.
+
+This software is provided under a commercial license.
+Unauthorized copying, distribution, reverse engineering, or modification is prohibited.
+
+Trial: 14 days from first use. After the trial you must purchase and activate a valid license.
+
+Third-party components:
+- PySide6 (LGPLv3)
+- OpenCV (Apache-2.0)
+- cryptography (Apache-2.0 / BSD)
+
+Contact: privateokisaputra@ymail.com

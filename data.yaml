@@ -1,0 +1,7 @@
+# YOLO segmentation dataset
+path: D:\leaf-area\Model-Latih-YOLO
+train: images/train
+val: images/val
+test: images/test
+nc: 1
+names: ["leaf"]
