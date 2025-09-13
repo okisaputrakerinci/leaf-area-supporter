@@ -1,32 +1,188 @@
-<!DOCTYPE html>
+
+<!doctype html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
+  <title>LeafLabeler – Penjelasan GUI & Fitur</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Leaf Area Supporter</title>
+  <style>
+    :root { --bg:#0f1320; --card:#161b2e; --muted:#8ea0b5; --text:#eaf2ff; --accent:#7aa5ff; --ok:#86efac; --warn:#fde047; }
+    *{box-sizing:border-box}
+    body{margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial; background:var(--bg); color:var(--text); line-height:1.6}
+    a{color:var(--accent); text-decoration:none}
+    a:hover{text-decoration:underline}
+    header{padding:32px 20px; background:linear-gradient(135deg,#111833 0%, #0f1320 50%, #101828 100%)}
+    .container{max-width:1100px; margin:0 auto; padding:0 20px}
+    h1{margin:0 0 10px 0; font-size:32px}
+    h2{margin:26px 0 10px; font-size:22px; border-left:4px solid var(--accent); padding-left:10px}
+    h3{margin:18px 0 8px; font-size:18px}
+    p.lead{color:var(--muted); font-size:17px; margin-top:8px}
+    .grid{display:grid; grid-template-columns:repeat(12,1fr); gap:16px}
+    .card{background:var(--card); border:1px solid rgba(255,255,255,0.06); border-radius:14px; padding:18px}
+    .span-12{grid-column:span 12}
+    .span-6{grid-column:span 6}
+    .span-4{grid-column:span 4}
+    .kbd{display:inline-block; padding:2px 6px; border:1px solid rgba(255,255,255,.2); border-bottom-width:2px; border-radius:6px; font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background:#0b1020; color:#cde3ff}
+    code{background:#0b1020; padding:2px 6px; border-radius:6px}
+    ul{padding-left:20px}
+    table{width:100%; border-collapse:collapse; background:var(--card); border-radius:12px; overflow:hidden}
+    th, td{padding:10px 12px; border-bottom:1px solid rgba(255,255,255,0.06); text-align:left; vertical-align:top}
+    th{color:#bfd4ff; font-weight:600; background:rgba(255,255,255,0.03)}
+    .badge{display:inline-block; padding:2px 8px; border-radius:999px; font-size:12px; border:1px solid rgba(255,255,255,.15); color:#cde3ff}
+    .ok{color:#052e16; background:linear-gradient(180deg,#86efac,#34d399)}
+    .muted{color:var(--muted)}
+    .callout{border-left:4px solid var(--accent); background:rgba(122,165,255,.08); padding:12px 14px; border-radius:8px}
+    footer{color:#a9b9cf; padding:24px 20px; font-size:14px}
+    @media (max-width:900px){
+      .span-6,.span-4{grid-column:span 12}
+    }
+  </style>
 </head>
 <body>
-  <h1>Leaf Area Supporter</h1>
-  <p>
-    Aplikasi ini digunakan untuk proses <strong>anotasi dan masking gambar</strong> pada daun
-    sebagai bagian dari <em>pra-pemrosesan</em> dalam pengolahan citra digital.
-  </p>
-  <p>
-    Output utama dari aplikasi ini berupa file <code>.yaml</code> yang dapat digunakan dalam pelatihan model
-    atau pengelolaan dataset anotasi.
-  </p>
-  <h3>Tujuan Aplikasi</h3>
-  <ul>
-    <li>Membuat anotasi objek daun secara manual</li>
-    <li>Melakukan masking objek dari citra asli</li>
-    <li>Menghasilkan file YAML sebagai format label</li>
-  </ul>
+  <header>
+    <div class="container">
+      <h1>LeafLabeler – GUI Annotation & Masking untuk YOLO Segmentasi</h1>
+      <p class="lead">Aplikasi desktop (PySide6/Qt) untuk memberi label segmentasi (poligon) dari citra daun/objek lain, ekspor dataset format YOLO (segment), serta utilitas <em>masking</em> biner.</p>
+      <div><span class="badge">Python · PySide6 · OpenCV</span> <span class="badge">Magic Wand (CIELab + GrabCut)</span> <span class="badge">YOLO seg dataset exporter</span></div>
+    </div>
+  </header>
 
-  <p>
-    Kode sumber tersedia di:
-    <a href="https://github.com/okisaputrakerinci/leaf-area-supporter" target="_blank">
-      GitHub Repository
-    </a>
-  </p>
+  <main class="container">
+    <section class="grid">
+      <div class="card span-12">
+        <h2>Apa aplikasinya?</h2>
+        <p><strong>LeafLabeler</strong> adalah alat anotasi manual yang fokus pada segmentasi (bukan hanya bounding box). Pengguna dapat melakukan seleksi cepat menggunakan <em>Magic Wand</em> yang cerdas, menyempurnakan area dengan kuas Foreground/Background, lalu mengubahnya menjadi <em>instance</em> berkelas (class) dan mengekspor ke <code>.txt</code> poligon format YOLO seg. Aplikasi juga mampu mengekspor <em>binary mask</em> (putih/ hitam) dan menyusun struktur dataset train/val beserta <code>data.yaml</code>.</p>
+      </div>
+
+      <div class="card span-6">
+        <h2>Highlight Kelebihan</h2>
+        <ul>
+          <li><strong>Magic Wand adaptif</strong>: bekerja di ruang warna CIELab + <em>bilateral filtering</em> (mode cepat & penuh), lalu <em>refinement</em> dengan GrabCut.</li>
+          <li><strong>Workflow ringan</strong>: kuas FG/BG, Quick Select, jadikan <em>instance</em>, simpan, lanjut gambar berikutnya.</li>
+          <li><strong>Ekspor YOLO Segmentasi</strong>: otomatis konversi mask ke poligon tersederhana (<code>cv2.approxPolyDP</code>) & normalisasi koordinat.</li>
+          <li><strong>Dataset splitter</strong>: bagi train/val, salin gambar & label, tulis <code>classes.txt</code> + opsional <code>data.yaml</code>.</li>
+          <li><strong>Undo/Redo</strong> dengan riwayat langkah—aman untuk eksperimen seleksi.</li>
+          <li><strong>Lisensi & Aktivasi</strong> terintegrasi: salin fingerprint perangkat, aktivasi via key.</li>
+        </ul>
+      </div>
+
+      <div class="card span-6">
+        <h2>Use Case Utama</h2>
+        <ul>
+          <li>Menandai area daun/canopy untuk pelatihan model segmentasi YOLO.</li>
+          <li>Membuat <em>mask biner</em> (putih/ hitam) untuk analisis area piksel.</li>
+          <li>Mengelola kelas (class) multi-objek dan menyatukan ke dataset standar.</li>
+          <li>Alur cepat labeling koleksi citra eksperimen (greenhouse, laboratorium, dsb.).</li>
+        </ul>
+      </div>
+
+      <div class="card span-12">
+        <h2>Cara Kerja Magic Wand (singkat teknis)</h2>
+        <ul>
+          <li>Gambar didownscale & dikonversi ke CIELab untuk stabilitas warna.</li>
+          <li><em>Bilateral filter</em> menghaluskan warna (jaga tepi), sensitif terhadap <span class="kbd">Wand tol</span> & ukuran kuas.</li>
+          <li><em>Flood fill</em> di ROI (mode cepat saat drag) atau full-image (mode final saat lepas mouse). Opsional <em>global</em> untuk non-kontigu.</li>
+          <li><em>Morphological open</em> mengurangi noise kecil.</li>
+          <li><em>GrabCut</em> mempertegas batas objek di sekitar ROI.</li>
+        </ul>
+        <div class="callout"><strong>Tip:</strong> drag (tahan klik) = pratinjau cepat; lepas klik = hasil tajam + GrabCut.</div>
+      </div>
+
+      <div class="card span-12">
+        <h2>Quick Start</h2>
+        <ol>
+          <li><strong>Open Image Folder</strong> → pilih folder berisi gambar (<code>.jpg/.png/...</code>).</li>
+          <li>Pilih gambar pada daftar kiri. Sesuaikan <span class="kbd">Brush</span> & <span class="kbd">Wand tol</span>.</li>
+          <li>Pakai <span class="kbd">FG Brush [1]</span>/<span class="kbd">BG Brush [2]</span> untuk seed, atau <span class="kbd">Magic Wand [3]</span> untuk seleksi cepat.</li>
+          <li>Klik <strong>⚡ Quick Select</strong> atau lepaskan klik dari <em>Wand</em> untuk seleksi akhir.</li>
+          <li>Klik <strong>+ Add Instance</strong> (aturan kelas aktif di <em>Active Class</em>).</li>
+          <li><strong>💾 Save</strong> untuk menyimpan label poligon YOLO. Lanjut dengan <strong>Save & Next</strong>.</li>
+          <li>Siap ekspor dataset: isi <em>Output Dataset Dir</em>, atur <em>Train %</em>, lalu <strong>⇪ Export YOLO Dataset</strong>.</li>
+        </ol>
+      </div>
+
+      <div class="card span-6">
+        <h2>Panel & Kontrol Utama</h2>
+        <ul>
+          <li><strong>Toolbar</strong>: pilih alat (FG/BG/Wand), atur <em>Brush</em>, <em>Wand tol</em>, <em>Wand→BG</em>, <em>Global</em>.</li>
+          <li><strong>Overlays</strong>: tampil/ sembunyikan Instances, Wand, Seeds, Selection, dan <em>Marching Ants</em>.</li>
+          <li><strong>Kelas</strong>: tambah/edit nama kelas, set <em>class</em> untuk <em>instance</em> terpilih.</li>
+          <li><strong>Instances list</strong>: ringkas jumlah piksel per instance, hapus/ubah kelas cepat.</li>
+          <li><strong>Paths</strong>: folder <em>labels</em>, output dataset, pembagi train/val, dan opsi tulis <code>data.yaml</code>.</li>
+        </ul>
+      </div>
+
+      <div class="card span-6">
+        <h2>Ekspor Dataset YOLO (segment)</h2>
+        <ul>
+          <li>Salin gambar ke <code>images/train</code> & <code>images/val</code> (persentase acak dengan seed).</li>
+          <li>Tulis label poligon ter-normalisasi ke <code>labels/train|val/*.txt</code>.</li>
+          <li>Tulis <code>classes.txt</code> dan opsional <code>data.yaml</code> (<code>nc</code>, <code>names</code>, <code>task: segment</code>).</li>
+        </ul>
+        <p class="muted">Catatan: poligon disederhanakan dengan <code>cv2.approxPolyDP</code> dan dibatasi <em>max_points</em> agar efisien.</p>
+      </div>
+
+      <div class="card span-12">
+        <h2>Shortcut Keyboard</h2>
+        <table>
+          <thead><tr><th>Aksi</th><th>Shortcut</th></tr></thead>
+          <tbody>
+            <tr><td>FG Brush / BG Brush / Magic Wand</td><td><span class="kbd">1</span> / <span class="kbd">2</span> / <span class="kbd">3</span></td></tr>
+            <tr><td>Quick Select / Clear Seeds</td><td><span class="kbd">R</span> / <span class="kbd">C</span></td></tr>
+            <tr><td>Save / Save & Next</td><td><span class="kbd">S</span> / <span class="kbd">Shift+S</span></td></tr>
+            <tr><td>Prev / Next image</td><td><span class="kbd">A</span> / <span class="kbd">D</span></td></tr>
+            <tr><td>Fit to Window</td><td><span class="kbd">Ctrl+0</span></td></tr>
+            <tr><td>Brush − / +</td><td><span class="kbd">[</span> / <span class="kbd">]</span></td></tr>
+            <tr><td>Toggle overlays (Instances / Wand / Seeds / Selection / Ants)</td><td><span class="kbd">O</span> / <span class="kbd">W</span> / <span class="kbd">E</span> / <span class="kbd">V</span> / <span class="kbd">M</span></td></tr>
+            <tr><td>Undo / Redo</td><td><span class="kbd">Ctrl+Z</span> / <span class="kbd">Ctrl+Y</span></td></tr>
+            <tr><td>Export Mask (Sel=Putih / Sel=Hitam)</td><td><span class="kbd">Ctrl+Shift+W</span> / <span class="kbd">Ctrl+Shift+B</span></td></tr>
+            <tr><td>Masukkan Lisensi / Salin Fingerprint</td><td><span class="kbd">Ctrl+L</span> / <span class="kbd">Ctrl+Shift+F</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card span-4">
+        <h2>Kemampuan (spill dikit)</h2>
+        <ul>
+          <li>Seleksi cepat daun yang kompleks (glossy/berbayang) berkat filter bilateral + CIELab.</li>
+          <li>Mode <em>global</em> untuk area warna serupa yang terpisah.</li>
+          <li>Konversi mask → poligon YOLO secara otomatis.</li>
+          <li>Batch ekspor dataset struktur standar.</li>
+        </ul>
+      </div>
+
+      <div class="card span-4">
+        <h2>Kelemahan/Limitasi</h2>
+        <ul>
+          <li>Kualitas seleksi tetap bergantung kontras objek–latar.</li>
+          <li>GrabCut dapat sensitif terhadap ukuran ROI—ulangi wand/seed bila perlu.</li>
+          <li>Bukan editor vektor penuh; poligon disederhanakan otomatis.</li>
+        </ul>
+      </div>
+
+      <div class="card span-4">
+        <h2>Lisensi & Tentang</h2>
+        <ul>
+          <li>Mode <em>Trial</em> dengan sisa hari tertera di judul.</li>
+          <li>Aktivasi <em>Full</em> memakai kunci lisensi terikat fingerprint perangkat.</li>
+          <li>Menu Help: salin fingerprint, cara mendapatkan lisensi, dan About.</li>
+        </ul>
+      </div>
+
+      <div class="card span-12">
+        <h2>Tips Praktis</h2>
+        <ul>
+          <li>Mulai dengan <em>Wand tol</em> kecil; tingkatkan perlahan saat tepi terlalu ketat.</li>
+          <li>Pakai <em>BG Brush</em> untuk mempertegas latar sebelum Quick Select.</li>
+          <li>Gunakan Undo/Redo untuk eksperimen tanpa takut kehilangan progres.</li>
+          <li>Atur <em>Train %</em> & <em>Seed</em> demi repetabilitas pembagian dataset.</li>
+        </ul>
+      </div>
+    </section>
+  </main>
+
+  <footer class="container">
+    <div>© 2025 OS AI Corp — Dibangun dengan PySide6 & OpenCV. Halaman ini hanya dokumentasi ringkas untuk <em>gui_labeler.py</em>.</div>
+  </footer>
 </body>
 </html>
